@@ -1,7 +1,7 @@
 # MatchBox+ Master Plan Converter 
 
 ## Overview
-**Version: 1.0.2_Beta**
+**Version: 1.0.3_Beta**
 This is an UI app,  it support edit/save csv file, and it also can convert **`Masterplan.csv`** to **`Init.csv`**, **`Main.csv`**, **`Teardown.csv`**, **`[$Tech].csv`**.
 
 ## Install
@@ -11,6 +11,7 @@ This is an UI app,  it support edit/save csv file, and it also can convert **`Ma
 > If any release, I will upload to this radar.
 
 * **MatchBox+ MasterPlan Converter UI.app**  will be under `/Applications/`.
+
 * There is an template located in  `/Users/Shared/MatchBox+ MasterPlan template/`. Then you can copy the `/Assets/` folder to any path you want.
 ``` ad-warning
 collapse: open
@@ -21,13 +22,14 @@ If you don't have the access of that path, the app will not be able to save the 
 
 ## How to use the app
 * Open the app, of course.![open app](images/Open.png)
+
 * Use the **Import CSV file** button to select the csv file you want to view or edit.![import csv file](images/Import.png)
+
 * If you want to edit the csv file, you can use this app like excel/number.![edit csv file](images/Edit.png)
+
 * After editing, you only need to click the **Save only** or **Save&Convert** button.
    ![Save only csv file](images/Save_only.png)
    ![Save and Convert csv file](images/SaveConverter.png)
-   
-   
 ``` ad-note
 collapse: open
 
@@ -36,9 +38,13 @@ If you import not **`MasterPlan.csv`** file, the **Save&Convert** button will be
 **Save only Button: ** it only save/overwrite the original csv file.
 **Save&Convert: ** it will save/overwrite the **`MasterPlan.csv`** and convert the **`Masterplan.csv`** to `**Init.csv`**, **`Main.csv`**, **`Teardown.csv`**, **`[$Tech].csv`**(under **`/Tech/`** folder)
 ```
+
 * If you want to close the app you have the two way to left.
 	 1.  Using the **Close**button.(Bottom right corner) ![close app1](images/Close1.png)
 	 2.  Using the **x** button the app original way. (Upper left corner) ![close app2](images/Close2.png)
+
+* If you want convert the **`Init.csv`**, **`Main.csv`**, **`Teardown.csv`**, **`[$Tech].csv`** to **`Masterplan.csv`**, clicking the icon button, and choose the **`.../Assets/`** folder. Then it will convert to **`Masterplan.csv`** and show this on UI.![Revert1](images/Revert1.png)![Revert2](images/Revert2.png)![Revert3](images/Revert3.png)
+
 
 ## Others
 * There is two (light/dark) theme in this app. Depend on which theme you like, you can click the **Change Theme** button to switch it, and the default is dark. ![Dark theme](images/Dark_theme.png)  ![Light theme](images/Light_theme.png)
@@ -73,3 +79,5 @@ It is the `.html`, and you only need to double click the `MatchBox+.html`.![Matc
 	3. Support different **`MasterPlan.csv`** to convert to the same **`Init.csv`**,  **`Teardown.csv`**, but different **`Main.csv`** (ie **`$Prefix-Main.csv`**, this `$Prefix-` is grab from the **`MasterPlan.csv`** file's prefix.) 
 	    And the **`[$Tech].csv`** will be updated not overwrite any more.
 	4. Make the UI smoother when changing the theme.
+* V1.0.3_Beta
+	1. Add the convert the **`Init.csv`**, **`Main.csv`**, **`Teardown.csv`**, **`[$Tech].csv`** to **`Masterplan.csv`** function.

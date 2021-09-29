@@ -1,15 +1,18 @@
 # from tksheet import Sheet
-import tksheet
+import os
 import tkinter as tk
 import tkinter.filedialog
+from tkinter import ttk
+
 # from tkinter.filedialog import askopenfilename
 import pandas as pd
-import os
-from tkinter import ttk
-#Version: 1.0.2_Beta
+import numpy as np
+import tksheet
+#Version: 1.0.3_Beta
 
 class MatchBoxUI:
     def __init__(self):
+        self.sheet = None
         self.now_path = os.path.dirname(__file__)
         self.csv_file_path = None
         # self.csv_file_path = self.now_path+"/Data/MasterPlan.csv"
@@ -31,7 +34,7 @@ class MatchBoxUI:
         self.style.theme_use('alt')
         self.isDark_theme = False
 
-        self.warning_lable = ttk.Label(text="Please import the existed CSV file", style="warning.TLabel")
+        self.warning_label = ttk.Label(text="Please import the existed CSV file", style="warning.TLabel")
         self.ImportFilepath_label = ttk.Label(text='MasterPlan File Path', style="normal.TLabel")
         self.v = tk.StringVar()
         self.Import_entry = ttk.Entry(textvariable=self.v, width=100, style="normal.TEntry")
@@ -47,6 +50,8 @@ class MatchBoxUI:
                                            style="normal.TButton")
         self.Close_Btn = ttk.Button(text='Close', command=self.root.destroy, width=15, style="close.TButton")
         self.Status_label = ttk.Label(text="Status: Idle", style="warning.TLabel")
+        self.revert_BTN = ttk.Button(style="normal.TButton", width=10, command=self.reverter)
+
 
         self.ImportFilepath_label.grid(row=1, column=0)
         self.Import_entry.grid(row=2, column=0)
@@ -58,6 +63,7 @@ class MatchBoxUI:
         self.Status_label.grid(row=6, column=0, sticky="w")
         self.SaveOnly_Btn.state(['disabled'])
         self.SaveAndConvert_Btn.state(['disabled'])
+        self.revert_BTN.grid(row=0, column=1,ipady=5, ipadx=5)
 
         self.Change_theme()
 
@@ -107,15 +113,17 @@ class MatchBoxUI:
             self.fg_color = '#3d3d3d'
             self.theme = "light blue"
             self.logo = tk.PhotoImage(file=self.now_path + '/Icon/Icon5050_rev.gif')
-        ttk.Label(image=self.logo, style="normal.TLabel", width=15).grid(row=0, column=1, ipady=5, ipadx=5, sticky="n")
+        self.revert_BTN.configure(image=self.logo)
+        # ttk.Button(image=self.logo, style="normal.TButton", width=10, command=self.reverter).grid(row=0, column=1,
+        #                                                                                           ipady=5, ipadx=5)
         try:
             self.sheet.change_theme(theme=self.theme)
         except:
             self.show_sheet()
 
     def show_sheet(self):
-        if self.csv_file_path == None or self.csv_file_path == "" or os.path.isfile(
-                self.csv_file_path) == False or ".csv" not in self.csv_file_path:
+        if self.csv_file_path is None or self.csv_file_path == "" or not os.path.isfile(
+                self.csv_file_path) or ".csv" not in self.csv_file_path:
             self.SaveAndConvert_Btn.state(['disabled'])
             self.SaveOnly_Btn.state(['disabled'])
             self.show_table = [[]]
@@ -126,10 +134,10 @@ class MatchBoxUI:
             except:
                 pass
             self.frame.grid_forget()
-            self.warning_lable.grid(row=0)
+            self.warning_label.grid(row=0)
             return
 
-        self.warning_lable.grid_remove()
+        self.warning_label.grid_remove()
         self.df = pd.read_csv(self.csv_file_path)
         self.table_header = [list(self.df.columns.values)]
         self.table_values = [[string if f"{string}" != "nan" else "" for string in row] for row in self.df.values]
@@ -155,15 +163,16 @@ class MatchBoxUI:
         self.sheet.enable_bindings()
         self.sheet.edit_bindings(True)
         self.sheet.set_options(enable_edit_cell_auto_resize=True)
-        self.frame.grid(row=0, sticky="nswe")
-        self.sheet.grid(row=0, sticky="nswe")
+        self.frame.grid(row=0, sticky="nsew")
+        self.sheet.grid(row=0, sticky="nsew")
         self.SaveOnly_Btn.state(['!disabled'])
 
-    def import_csv_data(self):
-        self.setStatus_label()
-        self.csv_file_path = tkinter.filedialog.askopenfilename()
+    def import_csv_data(self, isNeedImportData=True):
+        if isNeedImportData:
+            self.setStatus_label()
+            self.csv_file_path = tkinter.filedialog.askopenfilename()
         self.v.set(self.csv_file_path)
-        if (os.path.isfile(self.csv_file_path)):
+        if os.path.isfile(self.csv_file_path):
             self.show_sheet()
 
     def save_csv_data_func(self):
@@ -171,8 +180,8 @@ class MatchBoxUI:
         self.df = pd.DataFrame(self.newSheet[1:], columns=self.newSheet[0])
         self.df.to_csv(self.csv_file_path, index=False)
 
-    def setStatus_label(self, text: object = "Idle") -> object:
-        self.Status_label.configure(text="Status: " + text)
+    def setStatus_label(self, string="Idle"):
+        self.Status_label.configure(text="Status: " + string)
 
     def save_csv_data(self):
         self.setStatus_label()
@@ -188,14 +197,29 @@ class MatchBoxUI:
         self.converter = MatchBoxConverter(self.csv_file_path)
         self.setStatus_label("Saving...Converting...Done!")
 
+    def reverter(self):
+        asserts_folder = tkinter.filedialog.askdirectory() + "/"
+        # print(asserts_folder)
+        self.v.set(asserts_folder)
+        self.reverter = MatchBoxReverter(asserts_folder)
+        self.reverter.process_tech()
+        self.reverter.process_group()
+        self.reverter.createMasterPlan()
+        self.csv_file_path = asserts_folder + "MasterPlan.csv"
+        self.import_csv_data(False)
+
 
 def updateCSV(new_df, org_df):
     org_tech_Name = [tech for tech in org_df["TestName"] if str(tech) != "nan"]
     new_tech_Name = [tech for tech in new_df["TestName"] if str(tech) != "nan"]
-    org_tech_idx  = sorted([len(org_df.index)] + [org_df.index[org_df["TestName"] == tech].tolist().pop() for tech in list(dict.fromkeys(org_tech_Name))])
-    new_tech_idx  =sorted([len(new_df.index)] + [new_df.index[new_df["TestName"] == tech].tolist().pop() for tech in list(dict.fromkeys(new_tech_Name))])
-    org_tech_Name_andRange = {org_tech_Name[i]: [org_tech_idx[i], org_tech_idx[i + 1] - 1] for i in range(len(org_tech_Name))}
-    new_tech_Name_andRange = {new_tech_Name[i]: [new_tech_idx[i], new_tech_idx[i + 1] - 1] for i in range(len(new_tech_Name))}
+    org_tech_idx = sorted([len(org_df.index)] + [org_df.index[org_df["TestName"] == tech].tolist().pop() for tech in
+                                                 list(dict.fromkeys(org_tech_Name))])
+    new_tech_idx = sorted([len(new_df.index)] + [new_df.index[new_df["TestName"] == tech].tolist().pop() for tech in
+                                                 list(dict.fromkeys(new_tech_Name))])
+    org_tech_Name_andRange = {org_tech_Name[i]: [org_tech_idx[i], org_tech_idx[i + 1] - 1] for i in
+                              range(len(org_tech_Name))}
+    new_tech_Name_andRange = {new_tech_Name[i]: [new_tech_idx[i], new_tech_idx[i + 1] - 1] for i in
+                              range(len(new_tech_Name))}
     for tech_Name in new_tech_Name_andRange:
         if tech_Name in org_tech_Name_andRange:
             range_idx = org_tech_Name_andRange[tech_Name]
@@ -203,12 +227,12 @@ def updateCSV(new_df, org_df):
     return pd.concat([new_df, org_df], axis=0).reset_index(drop=True)
 
 
-def creatCSV(header, path, data):
+def createCSV(header, path, data):
     df = pd.DataFrame(data, columns=header)
     df.to_csv(path, index=False)
 
 
-class MatchBoxConverter():
+class MatchBoxConverter:
     def __init__(self, path):
         self.masterplan_path = path
         self.df = pd.read_csv(self.masterplan_path)
@@ -229,11 +253,13 @@ class MatchBoxConverter():
         # ===========================================
         # ================== GROUP ==================
         # ===========================================
-        if self.prefix != None and self.prefix != "":
+        if self.prefix is not None and self.prefix != "":
             group = ["Init", self.prefix + "Main", "Teardown"]
         else:
             group = ["Init", "Main", "Teardown"]
-        df = self.df.drop(columns=["TestActions", "Input", "Output", "Timeout", "Retries","AdditionalParameters", "ExitEarly", "SetPoison", "Commands", "FA"])
+        df = self.df.drop(
+            columns=["TestActions", "Input", "Output", "Timeout", "Retries", "AdditionalParameters", "ExitEarly",
+                     "SetPoison", "Commands", "FA"])
 
         group_idx = df.index[df["Group"].notnull()].tolist() + [len(df.index)]
         group_idx.sort()
@@ -253,13 +279,13 @@ class MatchBoxConverter():
                         else:
                             group_key[header] = [df[header].iloc[j]]
             # print(group_key)
-            creatCSV(self.group_header, file, group_key)
+            createCSV(self.group_header, file, group_key)
 
     def ConvertTech(self):
         # ===========================================
         # ================== TECH ===================
         # ===========================================
-        df = self.df.drop(columns=["Group","Production", "Audit", "Thread", "Policy", "Loop","Sample", "SOF"])
+        df = self.df.drop(columns=["Group", "Production", "Audit", "Thread", "Policy", "Loop", "Sample", "SOF"])
 
         tech_Technology_testName_idxrange = {}
         tech_Technology = [tech for tech in df["Technology"] if str(tech) != "nan"]
@@ -281,8 +307,6 @@ class MatchBoxConverter():
                 else:
                     if TestName not in tech_Technology_testName_idxrange[Technology]:
                         tech_Technology_testName_idxrange[Technology][TestName] = tech_idx_range[i]
-
-        # print(tech_Technology_testName_idxrange)
         tech_fom = {}
         for Technology in tech_Technology_testName_idxrange:
             if Technology in tech_fom:
@@ -305,7 +329,6 @@ class MatchBoxConverter():
                                 tech_key[header] = [df[header].iloc[i]]
             tech_fom[Technology] = tech_key
 
-
         for tech in tech_fom:
             file = self.tech_folder + "/" + tech + ".csv"
             header = self.tech_header
@@ -315,7 +338,82 @@ class MatchBoxConverter():
                 org_df = pd.read_csv(file)
                 final_df = updateCSV(new_df, org_df)
                 data = final_df.values
-            creatCSV(header, file, data)
+            createCSV(header, file, data)
+
+
+def grabFileListWithSuffix(folder_path, suffix=None):
+    fileList = os.listdir(folder_path)
+    if suffix is None or suffix == "":
+        return fileList
+    fileList = [file for file in fileList if suffix in file]
+    return fileList
+
+
+class MatchBoxReverter:
+    def __init__(self, Asserts_folder):
+        self.group_df_dic = {}
+        self.tech_df_dic = {}
+        self.asserts_folder = Asserts_folder
+        self.tech_folder = self.asserts_folder + "Tech/"
+        self.MasterPlan_header = ["Group", "TestName", "Technology", "TestActions", "Disable", "Production", "Audit",
+                                  "Thread", "Policy", "Loop", "Sample", "SOF", "Condition", "Input", "Output",
+                                  "Timeout", "Retries", "AdditionalParameters", "ExitEarly", "SetPoison", "Commands",
+                                  "FA", "Notes"]
+
+    def process_tech(self):
+        tech_file_list = [file.replace(".csv", "") for file in grabFileListWithSuffix(self.tech_folder, ".csv")]
+        self.tech_df_dic = {}
+        for file in tech_file_list:
+            df = pd.read_csv(self.tech_folder + file + ".csv")
+            df_header = list(df.columns.values)
+            for header in self.MasterPlan_header:
+                if header not in df_header:
+                    df[header] = np.nan
+            df = df[self.MasterPlan_header]
+            tech_TestName = [tech for tech in df["TestName"] if str(tech) != "nan"]
+            tech_idx = [len(df.index)]
+            for tech in list(dict.fromkeys(tech_TestName)):
+                tech_idx += df.index[df["TestName"] == tech].tolist()
+            tech_idx.sort()
+            tech_Name_andRange = {tech_TestName[i]: [tech_idx[i], tech_idx[i + 1] - 1] for i in
+                                  range(len(tech_TestName))}
+            df["TestName"] = np.nan
+            for testName in tech_Name_andRange:
+                idx_range = tech_Name_andRange[testName]
+                if file not in self.tech_df_dic:
+                    self.tech_df_dic[file] = {}
+                self.tech_df_dic[file][testName] = df.iloc[idx_range[0]: idx_range[1] + 1]
+
+    def process_group(self):
+        group_file_list = ["Init", "Main", "Teardown"]
+        for file in group_file_list:
+            df = pd.read_csv(self.asserts_folder + file + ".csv")
+            df_header = list(df.columns.values)
+            for header in self.MasterPlan_header:
+                if header not in df_header:
+                    np.array([file])
+                    df[header] = np.nan
+            try:
+                df["Group"].iloc[0] = file
+            except:
+                pass
+            self.group_df_dic[file] = df[self.MasterPlan_header]
+
+    def createMasterPlan(self):
+        ## Combine GROUP DF to TEMP MASTER PLAN ##
+        temp_master_plan = pd.concat(
+            [self.group_df_dic["Init"], self.group_df_dic["Main"], self.group_df_dic["Teardown"]],
+            axis=0).reset_index(drop=True)
+
+        ## Separate the TEMP MASTER PLAN and Combine the TECH DF ##
+        master_plan = pd.DataFrame([], columns=self.MasterPlan_header)
+        for i in range(len(temp_master_plan.index)):
+            test_Name = temp_master_plan["TestName"].iloc[i]
+            tech = temp_master_plan["Technology"].iloc[i]
+            master_plan = pd.concat([master_plan, temp_master_plan.iloc[i:i + 1], self.tech_df_dic[tech][test_Name]],
+                                    axis=0).reset_index(drop=True)
+        master_plan = master_plan[self.MasterPlan_header]
+        master_plan.to_csv(self.asserts_folder + "MasterPlan.csv", index=False)
 
 
 app = MatchBoxUI()

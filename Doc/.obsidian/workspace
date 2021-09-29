@@ -1,0 +1,106 @@
+{
+  "main": {
+    "id": "21f054e40ae41188",
+    "type": "split",
+    "children": [
+      {
+        "id": "4b12d684cd5d28ca",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "MatchBox+ Master Plan Converter Doc V1.0.2_Beta.md",
+            "mode": "preview"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "17b29f5942043736",
+    "type": "split",
+    "children": [
+      {
+        "id": "a9207e6e3302ff1b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "24be6206d96c83ad",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "d60eee86703f57ba",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "d36754af2d8e9962",
+    "type": "split",
+    "children": [
+      {
+        "id": "9402e497d64c8a68",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4b710af1f72964ef",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "MatchBox+ Master Plan Converter Doc V1.0.2_Beta.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "4b95ebf083edd669",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "MatchBox+ Master Plan Converter Doc V1.0.2_Beta.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "4b12d684cd5d28ca",
+  "lastOpenFiles": [
+    "MatchBox+ Master Plan Converter Doc V1.0.2_Beta.md",
+    "MatchBox+ Master Plan Converter Doc V1.0.1.md",
+    "MatchBox+ Master Plan Converter Doc V1.0.0 Beta version.md",
+    "未命名.md"
+  ]
+}

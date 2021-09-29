@@ -1,0 +1,7 @@
+TestName,TestActions,Disable,Input,Output,Timeout,Retries,AdditionalParameters,ExitEarly,SetPoison,Commands,FA,Condition,Notes
+TEST0,Common:executeShellCmd,,,(S0),10.0,,,Y,,"echo ""13""",,,
+,Common:calculator,,(S0),,,,,Y,,$(S0)*2,,,
+TEST1,Common:executeShellCmd,,,(S1),10.0,,,Y,,"echo ""15""",,,
+,Common:executeShellCmd,,,(S2),,,,Y,,"echo ""1.5""",,,
+TEST2,Common:executeShellCmd,,,,,,,,,"echo ""Last""",,,
+,Common:executeShellCmd,,,,,,,,,"echo ""Last1""",,,

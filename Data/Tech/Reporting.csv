@@ -1,0 +1,6 @@
+TestName,TestActions,Disable,Input,Output,Timeout,Retries,AdditionalParameters,ExitEarly,SetPoison,Commands,FA,Condition,Notes
+Report Station Attributes,Common:executeShellCmd,Y,,(limitsVersion),,,,Y,,/usr/bin/defaults read ~/Library/Atlas2/Config/config.plist LimitsVersion,,,
+,DataReporting:limitsVersion,,,,,,,Y,,$(limitsVersion),,,
+,EFIDut:send,,,[serialNumber],10.0,3.0,"{""pattern"":""Serial:%s+(%w+)""}",Y,,"[""sn""]",,,
+,DataReporting:primaryIdentity,,,,,,,Y,,$[serialNumber],,,
+Add Log To Insight,Common:addUserLogToSystemArchive,,,,,,,Y,,,,,

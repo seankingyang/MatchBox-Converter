@@ -1,0 +1,2 @@
+TestName,TestActions,Disable,Input,Output,Timeout,Retries,AdditionalParameters,ExitEarly,SetPoison,Commands,FA,Condition,Notes
+Check DUT Exist,Common:checkDUTChannelExist,,,,5.0,,"{""pattern"":""true""}",Y,,,,,

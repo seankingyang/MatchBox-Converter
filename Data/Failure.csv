@@ -1,0 +1,3 @@
+TestName,TestActions,Disable,Input,Output,Timeout,Retries,AdditionalParameters,Commands,Condition,Notes
+List Rawdata Folder Content,EFIDut:send,,,,,,,"[""dir nandfs:\\AppleInternal\\Diags\\Logs\\\\$[rawdataFolderName]\\""]",,
+,EFIDut:send,,,,10.0,,,"[""echo hi""]",,

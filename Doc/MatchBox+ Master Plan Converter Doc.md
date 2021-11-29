@@ -1,8 +1,8 @@
 # MatchBox+ Master Plan Converter 
 
 ## Overview
-**Version: 1.0.3_Beta**
-This is an UI app,  it support edit/save csv file, and it also can convert **`Masterplan.csv`** to **`Init.csv`**, **`Main.csv`**, **`Teardown.csv`**, **`[$Tech].csv`**.
+**Version: 1.0.4**
+This is an UI app,  it support edit/save csv file, and it can convert between **`Masterplan.csv`**  and the `csv` files (**`Init.csv`**, **`Main.csv`**, **`Teardown.csv`**, **`Failure.csv`**, **`[$Tech].csv`**) which will be called in OVL.
 
 ## Install
 * This app is already included `.py` and `libs`, so you don't need to install any python env or libraries.
@@ -17,7 +17,11 @@ This is an UI app,  it support edit/save csv file, and it also can convert **`Ma
 collapse: open
 Due to someone's mac don't have the access to edit the file under `/Users/Share/`, please must to copy the templete to other path.
 If you don't have the access of that path, the app will not be able to save the file.
+```` ad-note
+collapse: open
+The pre-install in pkg file will chang the `/Users/Share/` access to `777`, but you should still check the access is good.
 ```
+
 
 
 ## How to use the app
@@ -40,10 +44,10 @@ If you import not **`MasterPlan.csv`** file, the **Save&Convert** button will be
 ```
 
 * If you want to close the app you have the two way to left.
-	 1.  Using the **Close**button.(Bottom right corner) ![close app1](images/Close1.png)
-	 2.  Using the **x** button the app original way. (Upper left corner) ![close app2](images/Close2.png)
+     1.  Using the **Close**button.(Bottom right corner) ![close app1](images/Close1.png)
+     2.  Using the **x** button the app original way. (Upper left corner) ![close app2](images/Close2.png)
 
-* If you want convert the **`Init.csv`**, **`Main.csv`**, **`Teardown.csv`**, **`[$Tech].csv`** to **`Masterplan.csv`**, clicking the icon button, and choose the **`.../Assets/`** folder. Then it will convert to **`Masterplan.csv`** and show this on UI.![Revert1](images/Revert1.png)![Revert2](images/Revert2.png)![Revert3](images/Revert3.png)
+* If you want convert the **`Init.csv`**, **`Main.csv`**, **`Teardown.csv`**, **`Failure.csv`**, and **`[$Tech].csv`** to **`Masterplan.csv`**, clicking the icon button, and choose the **`Main.csv`** (or **`[$Prefix]Main.csv`**). Then it will convert to **`Masterplan.csv`** and show this on UI.![Revert1](images/Revert1.png)![Revert2](images/Revert2.png)![Revert3](images/Revert3.png)
 
 
 ## Others
@@ -67,17 +71,20 @@ It is the `.html`, and you only need to double click the `MatchBox+.html`.![Matc
 
 ## Version History
 * V1.0.0 : 
-	1. This is the beta version.
+    1. This is the beta version.
 * V1.0.1: 
-	1. Fix missing test action bug, during converting to **`Init.csv`**, **`Main.csv`**, **`Teardown.csv`**
-	2. Add the Status at the bottom left corner of this app
-		* **`Idle`**, **`Saving`**, **`Converting`**,** `done`**
+    1. Fix missing test action bug, during converting to **`Init.csv`**, **`Main.csv`**, **`Teardown.csv`**
+    2. Add the Status at the bottom left corner of this app
+        * **`Idle`**, **`Saving`**, **`Converting`**,** `done`**
 * V1.0.2_Beta: 
-	1. Fix the right clicking the row to choose the Insert row below bug. (Upgrade the **`tksheet`** from 5.0.30 to 5.0.32)
-	2. FIx the duplicate `TestName`(all test actions) in **`[$Tech].csv`** bug. 
-	    When you use the same `TestName` in the same **`[$Tech].csv`**, it will only show once and will be the first  `TestName`'s actions' in **`MasterPlan.csv`**.
-	3. Support different **`MasterPlan.csv`** to convert to the same **`Init.csv`**,  **`Teardown.csv`**, but different **`Main.csv`** (ie **`$Prefix-Main.csv`**, this `$Prefix-` is grab from the **`MasterPlan.csv`** file's prefix.) 
-	    And the **`[$Tech].csv`** will be updated not overwrite any more.
-	4. Make the UI smoother when changing the theme.
+    1. Fix the right clicking the row to choose the Insert row below bug. (Upgrade the **`tksheet`** from 5.0.30 to 5.0.32)
+    2. FIx the duplicate `TestName`(all test actions) in **`[$Tech].csv`** bug. 
+        When you use the same `TestName` in the same **`[$Tech].csv`**, it will only show once and will be the first  `TestName`'s actions' in **`MasterPlan.csv`**.
+    3. Support different **`MasterPlan.csv`** to convert to the same **`Init.csv`**,  **`Teardown.csv`**, but different **`Main.csv`** (ie **`$Prefix-Main.csv`**, this `$Prefix-` is grab from the **`MasterPlan.csv`** file's prefix.) 
+        And the **`[$Tech].csv`** will be updated not overwrite any more.
+    4. Make the UI smoother when changing the theme.
 * V1.0.3_Beta
-	1. Add the convert the **`Init.csv`**, **`Main.csv`**, **`Teardown.csv`**, **`[$Tech].csv`** to **`Masterplan.csv`** function.
+    1. Add the convert the **`Init.csv`**, **`Main.csv`**, **`Teardown.csv`**, **`[$Tech].csv`** to **`Masterplan.csv`** function.
+* V1.0.4
+    1. Support the **`Failure`** group in **`Masterplan.csv`**, and also can be converted or reverted to this.
+    2. Support the different **`Main`** group which will be used in the OVL to convert or revert to **`Masterplan.csv`**. (ie. **`Main.csv`**  <\==> **`Masterplan.csv`**, **`CAL-Main.csv`** <\==> **`CAL-Masterplan.csv`**, **`GRR_Main.csv`** <\==> **`GRR_Masterplan.csv`** etc.)

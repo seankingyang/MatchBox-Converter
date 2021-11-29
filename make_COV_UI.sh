@@ -18,6 +18,7 @@ cd $project_path
 cp -rf "$project_path/Data/Assets" "$project_path/Release/"
 cp -f "$project_path/make_COV_UI.sh" "$project_path/make_COV_UI"
 chmod +x "$project_path/make_COV_UI"
+rm -rf __pycache__
 
 
 

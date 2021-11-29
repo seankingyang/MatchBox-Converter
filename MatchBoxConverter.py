@@ -8,7 +8,39 @@ from tkinter import ttk
 import pandas as pd
 import numpy as np
 import tksheet
-#Version: 1.0.3_Beta
+#Version: 1.0.4
+def grabFileListWithSuffix(folder_path, suffix=None):
+    fileList = os.listdir(folder_path)
+    if suffix is None or suffix == "":
+        return fileList
+    fileList = [file for file in fileList if suffix in file]
+    return fileList
+def grabFilePrefix(fileName, main_name):
+    return fileName.replace(main_name,"")
+
+
+def updateCSV(new_df, org_df):
+    org_tech_Name = [tech for tech in org_df["TestName"] if str(tech) != "nan"]
+    new_tech_Name = [tech for tech in new_df["TestName"] if str(tech) != "nan"]
+    org_tech_idx = sorted([len(org_df.index)] + [org_df.index[org_df["TestName"] == tech].tolist().pop() for tech in
+                                                 list(dict.fromkeys(org_tech_Name))])
+    new_tech_idx = sorted([len(new_df.index)] + [new_df.index[new_df["TestName"] == tech].tolist().pop() for tech in
+                                                 list(dict.fromkeys(new_tech_Name))])
+    org_tech_Name_andRange = {org_tech_Name[i]: [org_tech_idx[i], org_tech_idx[i + 1] - 1] for i in
+                              range(len(org_tech_Name))}
+    new_tech_Name_andRange = {new_tech_Name[i]: [new_tech_idx[i], new_tech_idx[i + 1] - 1] for i in
+                              range(len(new_tech_Name))}
+    for tech_Name in new_tech_Name_andRange:
+        if tech_Name in org_tech_Name_andRange:
+            range_idx = org_tech_Name_andRange[tech_Name]
+            org_df = org_df.drop([idx for idx in range(range_idx[0], range_idx[1] + 1)])
+    return pd.concat([new_df, org_df], axis=0).reset_index(drop=True)
+
+def createCSV(header, path, data):
+    df = pd.DataFrame(data, columns=header)
+    df.to_csv(path, index=False)
+
+
 
 class MatchBoxUI:
     def __init__(self):
@@ -195,66 +227,50 @@ class MatchBoxUI:
         self.save_csv_data_func()
         self.setStatus_label("Saving...Converting...")
         self.converter = MatchBoxConverter(self.csv_file_path)
+        self.converter.ConvertGroup()
+        self.converter.ConvertTech()
         self.setStatus_label("Saving...Converting...Done!")
 
     def reverter(self):
-        asserts_folder = tkinter.filedialog.askdirectory() + "/"
+        main_path = tkinter.filedialog.askopenfilename()
+        main_fileName = main_path.split("/")[-1].replace(".csv","")
+        if "Main" not in main_fileName:
+            return -1
+        asserts_folder = main_path.replace(main_path.split("/")[-1], "")
         # print(asserts_folder)
         self.v.set(asserts_folder)
-        self.reverter = MatchBoxReverter(asserts_folder)
+        self.reverter = MatchBoxReverter(asserts_folder, main_fileName)
         self.reverter.process_tech()
         self.reverter.process_group()
-        self.reverter.createMasterPlan()
-        self.csv_file_path = asserts_folder + "MasterPlan.csv"
+        self.csv_file_path = self.reverter.createMasterPlan()
         self.import_csv_data(False)
 
-
-def updateCSV(new_df, org_df):
-    org_tech_Name = [tech for tech in org_df["TestName"] if str(tech) != "nan"]
-    new_tech_Name = [tech for tech in new_df["TestName"] if str(tech) != "nan"]
-    org_tech_idx = sorted([len(org_df.index)] + [org_df.index[org_df["TestName"] == tech].tolist().pop() for tech in
-                                                 list(dict.fromkeys(org_tech_Name))])
-    new_tech_idx = sorted([len(new_df.index)] + [new_df.index[new_df["TestName"] == tech].tolist().pop() for tech in
-                                                 list(dict.fromkeys(new_tech_Name))])
-    org_tech_Name_andRange = {org_tech_Name[i]: [org_tech_idx[i], org_tech_idx[i + 1] - 1] for i in
-                              range(len(org_tech_Name))}
-    new_tech_Name_andRange = {new_tech_Name[i]: [new_tech_idx[i], new_tech_idx[i + 1] - 1] for i in
-                              range(len(new_tech_Name))}
-    for tech_Name in new_tech_Name_andRange:
-        if tech_Name in org_tech_Name_andRange:
-            range_idx = org_tech_Name_andRange[tech_Name]
-            org_df = org_df.drop([idx for idx in range(range_idx[0], range_idx[1] + 1)])
-    return pd.concat([new_df, org_df], axis=0).reset_index(drop=True)
-
-
-def createCSV(header, path, data):
-    df = pd.DataFrame(data, columns=header)
-    df.to_csv(path, index=False)
 
 
 class MatchBoxConverter:
     def __init__(self, path):
         self.masterplan_path = path
         self.df = pd.read_csv(self.masterplan_path)
-        self.prefix = str.replace(str.split(self.masterplan_path, "/")[-1], "MasterPlan.csv", "")
+        self.main_prefix = grabFilePrefix(str.split(self.masterplan_path, "/")[-1], "MasterPlan.csv")
         self.folder = str.replace(self.masterplan_path, "/" + str.split(self.masterplan_path, "/")[-1], "")
         self.group_header = ["TestName", "Technology", "Disable", "Production", "Audit", "Thread", "Policy", "Loop",
                              "Sample", "SOF", "Condition", "Notes"]
         self.tech_header = ["TestName", "TestActions", "Disable", "Input", "Output", "Timeout", "Retries",
                             "AdditionalParameters", "ExitEarly", "SetPoison", "Commands", "FA", "Condition", "Notes"]
+        self.FATech_header = ["TestName", "TestActions", "Disable", "Input", "Output", "Timeout", "Retries",
+                              "AdditionalParameters", "Commands", "Condition", "Notes"]
 
         self.tech_folder = self.folder + "/Tech"
         if not os.path.isdir(self.tech_folder):
             os.mkdir(self.tech_folder)
-        self.ConvertGroup()
-        self.ConvertTech()
+
 
     def ConvertGroup(self):
         # ===========================================
         # ================== GROUP ==================
         # ===========================================
-        if self.prefix is not None and self.prefix != "":
-            group = ["Init", self.prefix + "Main", "Teardown"]
+        if self.main_prefix is not None and self.main_prefix != "":
+            group = ["Init", self.main_prefix + "Main", "Teardown"]
         else:
             group = ["Init", "Main", "Teardown"]
         df = self.df.drop(
@@ -330,41 +346,52 @@ class MatchBoxConverter:
             tech_fom[Technology] = tech_key
 
         for tech in tech_fom:
-            file = self.tech_folder + "/" + tech + ".csv"
-            header = self.tech_header
+            if tech == "Failure":
+                file = self.folder + "/" + tech + ".csv"
+                header = self.FATech_header
+            else:
+                file = self.tech_folder + "/" + tech + ".csv"
+                header = self.tech_header
             data = tech_fom[tech]
             if os.path.isfile(file):
-                new_df = pd.DataFrame(tech_fom[tech], columns=self.tech_header)
+                new_df = pd.DataFrame(tech_fom[tech], columns=header)
                 org_df = pd.read_csv(file)
                 final_df = updateCSV(new_df, org_df)
                 data = final_df.values
+            # print(file)
             createCSV(header, file, data)
 
 
-def grabFileListWithSuffix(folder_path, suffix=None):
-    fileList = os.listdir(folder_path)
-    if suffix is None or suffix == "":
-        return fileList
-    fileList = [file for file in fileList if suffix in file]
-    return fileList
+
 
 
 class MatchBoxReverter:
-    def __init__(self, Asserts_folder):
+    def __init__(self, Asserts_folder,Main_fileName):
         self.group_df_dic = {}
         self.tech_df_dic = {}
         self.asserts_folder = Asserts_folder
+        self.main_fileName = Main_fileName
+        self.main_prefix = grabFilePrefix(self.main_fileName,"Main")
         self.tech_folder = self.asserts_folder + "Tech/"
+        self.group_header = ["TestName", "Technology", "Disable", "Production", "Audit", "Thread", "Policy", "Loop",
+                             "Sample", "SOF", "Condition", "Notes"]
+        self.tech_header = ["TestName", "TestActions", "Disable", "Input", "Output", "Timeout", "Retries",
+                            "AdditionalParameters", "ExitEarly", "SetPoison", "Commands", "FA", "Condition", "Notes"]
         self.MasterPlan_header = ["Group", "TestName", "Technology", "TestActions", "Disable", "Production", "Audit",
                                   "Thread", "Policy", "Loop", "Sample", "SOF", "Condition", "Input", "Output",
                                   "Timeout", "Retries", "AdditionalParameters", "ExitEarly", "SetPoison", "Commands",
                                   "FA", "Notes"]
 
+
     def process_tech(self):
         tech_file_list = [file.replace(".csv", "") for file in grabFileListWithSuffix(self.tech_folder, ".csv")]
+        tech_file_list += ["Failure"]
         self.tech_df_dic = {}
         for file in tech_file_list:
-            df = pd.read_csv(self.tech_folder + file + ".csv")
+            if file == "Failure":
+                df = pd.read_csv(self.asserts_folder + file + ".csv")
+            else:
+                df = pd.read_csv(self.tech_folder + file + ".csv")
             df_header = list(df.columns.values)
             for header in self.MasterPlan_header:
                 if header not in df_header:
@@ -384,36 +411,66 @@ class MatchBoxReverter:
                     self.tech_df_dic[file] = {}
                 self.tech_df_dic[file][testName] = df.iloc[idx_range[0]: idx_range[1] + 1]
 
+
     def process_group(self):
-        group_file_list = ["Init", "Main", "Teardown"]
+        # ["Init", "Main", "Teardown"]
+        group_file_list = ["Init", self.main_prefix+"Main", "Teardown","Failure"]
         for file in group_file_list:
-            df = pd.read_csv(self.asserts_folder + file + ".csv")
+            if file == "Main":
+                file_path = self.asserts_folder + self.main_prefix + file + ".csv"
+            else:
+                file_path = self.asserts_folder + file + ".csv"
+            df = pd.read_csv(file_path)
             df_header = list(df.columns.values)
+            if file == "Failure":
+                df = df.loc[df['TestName'].notnull()]
+                for header in df_header:
+                    if header not in self.group_header:
+                        df[header] = np.nan
             for header in self.MasterPlan_header:
                 if header not in df_header:
                     np.array([file])
                     df[header] = np.nan
+
             try:
-                df["Group"].iloc[0] = file
+                if "Main" in file:
+                    df["Group"].iloc[0] = "Main"
+                else:
+                    df["Group"].iloc[0] = file
             except:
                 pass
             self.group_df_dic[file] = df[self.MasterPlan_header]
 
+
     def createMasterPlan(self):
         ## Combine GROUP DF to TEMP MASTER PLAN ##
         temp_master_plan = pd.concat(
-            [self.group_df_dic["Init"], self.group_df_dic["Main"], self.group_df_dic["Teardown"]],
+            [self.group_df_dic["Init"], self.group_df_dic[self.main_fileName], self.group_df_dic["Teardown"], self.group_df_dic["Failure"] ],
             axis=0).reset_index(drop=True)
-
+        # print(temp_master_plan)
         ## Separate the TEMP MASTER PLAN and Combine the TECH DF ##
         master_plan = pd.DataFrame([], columns=self.MasterPlan_header)
+        FA_flag = False
         for i in range(len(temp_master_plan.index)):
             test_Name = temp_master_plan["TestName"].iloc[i]
             tech = temp_master_plan["Technology"].iloc[i]
-            master_plan = pd.concat([master_plan, temp_master_plan.iloc[i:i + 1], self.tech_df_dic[tech][test_Name]],
-                                    axis=0).reset_index(drop=True)
+
+            if  temp_master_plan["Group"].iloc[i] == "Failure":
+                FA_flag = True
+            if FA_flag:
+                tech = "Failure"
+                temp_master_plan["Technology"].iloc[i] = tech
+            try:
+                master_plan = pd.concat(
+                    [master_plan, temp_master_plan.iloc[i:i + 1], self.tech_df_dic[tech][test_Name]],
+                    axis=0).reset_index(drop=True)
+            except:
+                print("test_Name:", test_Name, ";tech: ", tech)
+                pass
+
         master_plan = master_plan[self.MasterPlan_header]
-        master_plan.to_csv(self.asserts_folder + "MasterPlan.csv", index=False)
+        master_plan.to_csv(self.asserts_folder +self.main_prefix +"MasterPlan.csv", index=False)
+        return self.asserts_folder +self.main_prefix +"MasterPlan.csv"
 
 
 app = MatchBoxUI()
